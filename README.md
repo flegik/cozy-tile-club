@@ -76,7 +76,7 @@ Add a motif name and original SVG renderer to `Motif.tsx`, then extend the gener
 
 `npm test`: rule edge cases, independent exhaustive small-state oracle comparison, all 30 shipped levels, 500 deterministic seeds generated twice, room footprints, save validation, first-clear economy, three React DOM interaction flows and a simulated service-worker offline test. `npm run build`: strict TypeScript plus Vite and precache generation. UI tests run in jsdom with a solver-backed Worker double, **not a real browser**. The service-worker test simulates install/activate/offline handlers, not an actual Android installation.
 
-No actual Android/Chrome viewport, accessibility audit, real-worker browser timing or offline installation was verified in this environment because the supported browser-QA capability was unavailable. First device review should test widths 360/393/412 px, tall and short screens, tap accuracy, hints/cozy warnings, phone reload, flight mode and installability. No CI run has been verified until this is pushed to GitHub.
+No actual Android/Chrome viewport, accessibility audit, real-worker browser timing or offline installation was verified in this environment because the supported browser-QA capability was unavailable. First device review should test widths 360/393/412 px, tall and short screens, tap accuracy, hints/cozy warnings, phone reload, flight mode and installability. The tested MVP has also passed [GitHub Actions](https://github.com/flegik/cozy-tile-club/actions/runs/38473049243). See `VALIDATION.md` for exact verification evidence.
 
 ## Next phase
 

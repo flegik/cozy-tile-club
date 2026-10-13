@@ -1,5 +1,9 @@
 # MVP verification — 2026-10-13
 
+## GitHub verification
+
+The tested source tree `38145ae7097f6926913dcc7833082a97453657c0` was uploaded to the private repository https://github.com/flegik/cozy-tile-club on `main`. GitHub Actions run https://github.com/flegik/cozy-tile-club/actions/runs/38473049243 completed successfully for commit `ba8e946d67dc9fc7395a38b81c4bcfcd799c55df`: dependency installation, tests and production build passed. No hosting deployment was performed.
+
 ## Passed locally
 
 - `npm run check`: 20 tests across 4 test files, strict TypeScript and production Vite build.
@@ -18,7 +22,6 @@
 ## Not verified
 
 - Real Android or responsive browser rendering, pointer hit testing, install prompts, real Worker timing and flight-mode caching. No supported browser-QA tool was available; no preview server was started.
-- GitHub repository creation/push and GitHub Actions run. Workflow exists locally; its remote run is pending repository creation.
 - No public or private web hosting deployment has taken place.
 
 ## MVP limits
