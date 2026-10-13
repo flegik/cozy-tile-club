@@ -1,5 +1,7 @@
 # 🎀 Cozy Tile Club
 
+**Gameplay 0.2:** 30 new strategic puzzles, normal play without automatic Cozy checks, versioned save migration. Full per-level strategy rates and legal loss/win evidence are documented in [GAMEPLAY_REWORK.md](GAMEPLAY_REWORK.md).
+
 Private, mobile-first offline PWA: triple-tile puzzles + an isometric kawaii room. Original SVG artwork; no Sanrio assets, backend, ads, purchases or public deployment.
 
 ## Run
@@ -20,7 +22,7 @@ Android installation: Chrome menu → Install app/Add to home screen. The produc
 
 ## Features
 
-- 30 certified, reproducible levels; five geometries, offset layers, ten original motifs.
+- 30 certified, reproducible levels; seven geometry families, offset layers, five to eight motifs per level.
 - Seven-slot tray, automatic triples, win/loss, unlimited Undo, identical restart.
 - Worker-based safe hints and Cozy move checks; time/node budgets with an explicit unknown result.
 - Layer atlas reveals all unremoved motifs and their actual positions: no compulsory blind guesses.
@@ -54,7 +56,7 @@ Android installation: Chrome menu → Install app/Add to home screen. The produc
 
 A tile is blocked by any remaining tile on a higher layer when both coordinate distances are strictly below 0.94 tile units. Lower/same layers do not block. The view uses the same grid geometry and offset layers. The chosen motif is appended to the tray; exactly three matching motifs disappear **before** the capacity check. Seven unmatched tray entries lose. An empty board **and** empty tray wins. Lost states cannot make more moves until Undo/restart.
 
-The generator first constructs a legal geometric removal route, assigning complete motif triples along it. Later difficulty uses two- and three-motif interleaving (up to six unmatched entries on that route). Every candidate is then independently solved and the resulting route is replayed using the actual engine during verification. The solver does **not** import the engine, generator or constructed route. It derives higher-layer blockers independently and searches all legal tile choices with exact triple/capacity rules. It returns `solved`, `unsolvable`, or `budget`; only `solved` can certify release. A rejected candidate throws rather than entering the shipped pack.
+The new generator independently mixes balanced motifs over randomized layered geometry. It never assigns motifs along a solution route. A bounded independent DFS certifies each candidate. A curator rejects levels outside behavioral acceptance bands using random, greedy and three-ply beam-search simulations. Every shipped level has both a legal win certificate and a legal seven-slot loss certificate. Three strategies each run 1,000 trials per level, plus a second independent validation stream: 180,000 simulated games total. The simulation transition model is checked against the authoritative engine. No failed or unknown solver result can certify release.
 
 Runtime hints solve the current state, not the original certificate. Their first move has a complete continuation proof. Cozy checks the prospective state: solved moves proceed; proven dead ends require a warning confirmation; unknown checks do not claim safety and stay unplayed unless Cozy is turned off. Undo is free, including after a loss. Worker search has a 200,000-node budget and a five-second watchdog. Atlas shows **all** motifs so unavailable information need never decide the game.
 
@@ -62,9 +64,9 @@ Fairness does not guarantee that every legal move wins. The explicit full-inform
 
 ## Difficulty and new levels
 
-`generate(seed, difficulty, id)` supports deterministic candidates. Release metrics include average legal decision count, actual layer depth, sampled proven traps and search effort/lookahead. The composite score orders the 30-level pack; it is a heuristic, not a claim of measured human difficulty. Trap probing is sampled and budget-limited; unproven cases do not count as proven traps. Playtesting should refine this ordering.
+`generate(seed, tier)` creates a balanced candidate, not a release-approved level. `buildPack()` performs independent solver certification and behavioral curation. Seven masks, randomized occupied cells, two to four offset layers and five to eight motifs create distinct dependency layouts. Metrics contain exact random/greedy/lookahead trial rates, blocked counts, motif count, solver effort and a behavior-derived index. See `GAMEPLAY_REWORK.md` for formulas, thresholds, seeds and all 30 rates.
 
-Run `npm run levels` to regenerate the current release pack. The test builds 500 seeds twice, proves and engine-replays each, validates motif multiplicities, and verifies the pack matches its deterministic generator. Add seeds/geometries/braid configurations in `generator.ts` and update the pack-building test. **Do not ship uncertified or budget-exhausted candidates.** Existing saves refer to level IDs: freeze released seeds/IDs; when extending the pack, append new IDs and migrate saves rather than reshuffling live IDs. The MVP UI and save cap currently use 30 and must be extended together for a larger release.
+Run `npm run levels` to deterministically curate a new release pack. `npm run validate:heldout` produces an independent validation stream. Existing saves now identify pack 2: old active attempts are safely cleared while room/economy/completed progress remain. Cozy defaults off, including migration from pack 1; version 2 preserves explicit opt-in. Voluntary campaign restart preserves the room/economy and tracks already-paid rewards separately. Freeze released seeds/IDs going forward or bump the pack version and migrate. Larger campaigns need UI/save caps extended together. **Never ship unproven candidates.**
 
 ## New furniture and motifs
 
@@ -74,7 +76,7 @@ Add a motif name and original SVG renderer to `Motif.tsx`, then extend the gener
 
 ## Validation
 
-`npm test`: rule edge cases, independent exhaustive small-state oracle comparison, all 30 shipped levels, 500 deterministic seeds generated twice, room footprints, save validation, first-clear economy, three React DOM interaction flows and a simulated service-worker offline test. `npm run build`: strict TypeScript plus Vite and precache generation. UI tests run in jsdom with a solver-backed Worker double, **not a real browser**. The service-worker test simulates install/activate/offline handlers, not an actual Android installation.
+`npm test`: rule edge cases, independent exhaustive small-state oracle comparison, all 30 shipped win/loss certificates, 500 candidate seeds generated twice, 180,000 reproducible strategy simulations, room footprints, save validation, first-clear economy, React DOM interaction flows including ordinary loss and explicit Cozy opt-in and a simulated service-worker offline test. `npm run build`: strict TypeScript plus Vite and precache generation. UI tests run in jsdom with a solver-backed Worker double, **not a real browser**. The service-worker test simulates install/activate/offline handlers, not an actual Android installation.
 
 No actual Android/Chrome viewport, accessibility audit, real-worker browser timing or offline installation was verified in this environment because the supported browser-QA capability was unavailable. First device review should test widths 360/393/412 px, tall and short screens, tap accuracy, hints/cozy warnings, phone reload, flight mode and installability. The tested MVP has also passed [GitHub Actions](https://github.com/flegik/cozy-tile-club/actions/runs/38473049243). See `VALIDATION.md` for exact verification evidence.
 

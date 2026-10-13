@@ -2,9 +2,10 @@ import {describe,it,expect} from 'vitest';
 import {accessible,move,undo} from '../src/puzzle/engine';
 import {solve} from '../src/puzzle/solver';
 import {emptyState,type Tile,type State} from '../src/puzzle/types';
+import {prepare,free,step,replay} from '../src/puzzle/simulation';
 import {levels} from '../src/puzzle/levels';
 import {canPlace,place,sorted} from '../src/room/engine';
-import {fresh,reward,purchase,parseSave} from '../src/save/store';
+import {fresh,reward,purchase,parseSave,restartCampaign} from '../src/save/store';
 const tiles:Tile[]=Array.from({length:9},(_,id)=>({id,x:id%3,y:Math.floor(id/3),z:0,motif:Math.floor(id/3)}));
 describe('actual puzzle rules',()=>{
  it('blocks partial overlaps but allows touching edges',()=>{const t=[tiles[0],{...tiles[1],x:.42,z:1}];expect(accessible(t,emptyState(),0)).toBe(false);expect(accessible(t,emptyState(),1)).toBe(true);expect(accessible([{...tiles[1],x:1,z:1},tiles[0]],emptyState(),0)).toBe(true);});
@@ -31,4 +32,11 @@ describe('room and progression',()=>{
  it('rewards once and purchases obey funds/unlock/ownership',()=>{const s=reward(fresh(),1);expect(s.hearts).toBe(70);expect(reward(s,1)).toBe(s);expect(reward(s,1.5)).toBe(s);expect(reward(s,30)).toBe(s);const p=purchase(s,'bed');expect(p.hearts).toBe(10);expect(purchase(p,'bed')).toBe(p);expect(purchase(fresh(),'bunny')).toEqual(fresh());});
  it('round-trips save and rejects corrupted data',()=>{const s=reward(fresh(),1);expect(parseSave(JSON.stringify(s))).toEqual(s);expect(parseSave('{')).toEqual(fresh());expect(parseSave(JSON.stringify({...s,hearts:-2}))).toEqual(fresh());});
  it('persists and validates midgame, rebuilding unlimited undo history',()=>{const l=levels[0];const s=fresh();s.active={level:1,state:move(l.tiles,emptyState(),l.certificate[0]),history:[emptyState()]};expect(parseSave(JSON.stringify(s))).toEqual(s);s.active.state.removed.push(999);expect(parseSave(JSON.stringify(s)).active).toBeNull();});
+});
+
+describe('gameplay rework guarantees',()=>{
+ it('Level 1 has a proven win AND an actually reachable seven-slot loss',()=>{const l=levels[0];expect(new Set(l.tiles.map(t=>t.motif)).size).toBeGreaterThanOrEqual(4);expect(solve(l.tiles,emptyState(),200000).status).toBe('solved');expect(replay(l.tiles,l.lossCertificate).status).toBe('lost');expect(replay(l.tiles,l.lossCertificate).tray).toHaveLength(7);expect(l.metrics.greedy.rate).toBeLessThan(.85);});
+ it('normal play starts with Cozy off; legacy default does not survive migration',()=>{expect(fresh().cozy).toBe(false);const old={...fresh(),version:1,cozy:true,hearts:200,completed:[1,2],owned:['plant','table','bed'],placed:[{id:'bed',x:0,y:0}],active:{level:1,state:emptyState(),history:[]}};const migrated=parseSave(JSON.stringify(old));expect(migrated.version).toBe(2);expect(migrated.cozy).toBe(false);expect(migrated.active).toBeNull();expect(migrated.hearts).toBe(200);expect(migrated.placed).toEqual(old.placed);expect(migrated.owned).toEqual(old.owned);expect(migrated.completed).toEqual([1,2]);expect(migrated.rewarded).toEqual([1,2]);expect(migrated.migrated).toBe(true);});
+ it('voluntary restart preserves room/economy and prevents duplicate heart farming',()=>{const s=reward(fresh(),1),r=restartCampaign(s);expect(r.completed).toEqual([]);expect(r.hearts).toBe(s.hearts);expect(r.placed).toEqual(s.placed);expect(r.owned).toEqual(s.owned);const won=reward(r,1);expect(won.hearts).toBe(s.hearts);expect(won.completed).toEqual([1]);expect(won.rewarded).toEqual([1]);});
+ it('compact simulation transitions agree with gameplay at every reachable small state',()=>{const b=prepare(tiles);const seen=new Set<string>();const queue=[emptyState()];while(queue.length){const s=queue.pop()!,key=s.removed.slice().sort((a,b)=>a-b).join();if(seen.has(key))continue;seen.add(key);const c={removed:s.removed.reduce((m,id)=>m|(1n<<BigInt(id)),0n),counts:Array.from({length:3},(_,m)=>s.tray.filter(v=>v===m).length),used:s.tray.length};if(s.status!=='playing')continue;expect(free(b,c).map(i=>tiles[i].id)).toEqual(tiles.filter(t=>accessible(tiles,s,t.id)).map(t=>t.id));for(const i of free(b,c)){const next=move(tiles,s,tiles[i].id),compact=step(b,c,i);expect(compact.used).toBe(next.tray.length);expect(compact.counts).toEqual(Array.from({length:3},(_,m)=>next.tray.filter(v=>v===m).length));queue.push(next);}}expect(seen.size).toBeGreaterThan(100);});
 });

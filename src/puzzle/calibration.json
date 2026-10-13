@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "simulationSeed": 3224248358,
+  "trialsPerStrategy": 1000,
+  "candidates": 203,
+  "uncertified": 0,
+  "behaviorRejected": 168,
+  "fullRunsRejected": 5
+}
