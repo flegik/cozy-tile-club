@@ -13,3 +13,7 @@ The original MVP passed its initial GitHub Actions run, but those tests did not 
 - Holdout results preserve increasing average difficulty across all four tiers.
 - Normal-play loss, explicit Cozy activation, complete planning information, migration and replay-reward protection passed UI/rule tests.
 - GitHub Actions verification for this rework is performed after pushing; the final task report links the run. Browser QA limitations above remain.
+
+## Design 0.3
+
+The design rework adds theme persistence, contrast checks, stable room catalog identity checks and theme/placement UI tests. The full suite has 34 tests. See [DESIGN_REWORK.md](DESIGN_REWORK.md) for art inspection, palette coverage and the limits of browser/mobile verification. Puzzle data and behavioral calibration remain unchanged.

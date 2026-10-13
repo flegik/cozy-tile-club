@@ -1,9 +1,10 @@
 import {catalog,type Placed,item,canPlace} from '../room/engine';
 import {levels} from '../puzzle/levels';
 import {emptyState,type State} from '../puzzle/types';
+import type {Theme} from '../theme/tokens';
 import {move} from '../puzzle/engine';
-export type Save={version:2;pack:2;migrated:boolean;rewarded:number[];hearts:number;completed:number[];owned:string[];placed:Placed[];wall:string;floor:string;cozy:boolean;sound:boolean;active:{level:number;state:State;history:State[]}|null};
-export const fresh=():Save=>({version:2,pack:2,migrated:false,rewarded:[],hearts:40,completed:[],owned:['plant','table'],placed:[{id:'plant',x:0,y:0},{id:'table',x:3,y:3}],wall:'#f3d2df',floor:'#ead9ce',cozy:false,sound:true,active:null});
+export type Save={version:2;pack:2;migrated:boolean;rewarded:number[];hearts:number;completed:number[];owned:string[];placed:Placed[];wall:string;floor:string;cozy:boolean;sound:boolean;theme:Theme;active:{level:number;state:State;history:State[]}|null};
+export const fresh=():Save=>({version:2,pack:2,migrated:false,rewarded:[],hearts:40,completed:[],owned:['plant','table'],placed:[{id:'plant',x:0,y:0},{id:'table',x:3,y:3}],wall:'#f3d2df',floor:'#ead9ce',cozy:false,sound:true,theme:'light',active:null});
 export function reward(save:Save,level:number):Save{if(save.completed.includes(level)||!Number.isInteger(level)||level<1||level>30||level>save.completed.length+1)return save;return{...save,hearts:save.hearts+(save.rewarded.includes(level)?0:30),completed:[...save.completed,level],rewarded:save.rewarded.includes(level)?save.rewarded:[...save.rewarded,level]};}
 export function purchase(save:Save,id:string):Save{const f=catalog.find(f=>f.id===id);if(!f||save.owned.includes(id)||save.hearts<f.price||save.completed.length+1<f.unlock)return save;return{...save,hearts:save.hearts-f.price,owned:[...save.owned,id]};}
 export function parseSave(raw:string|null):Save{
@@ -19,7 +20,7 @@ export function parseSave(raw:string|null):Save{
  }}
  const migration=s.version!==2||s.pack!==2;
  const rewarded=s.version===1?s.completed:Array.isArray(s.rewarded)?[...new Set<number>(s.rewarded.filter((n:unknown)=>Number.isInteger(n)&&Number(n)>=1&&Number(n)<=30))]:s.completed;
- return{...base,migrated:migration||s.migrated===true,rewarded:[...new Set<number>([...rewarded,...s.completed])],hearts:s.hearts,completed:s.completed,owned,placed,wall:allowedWall.includes(s.wall)?s.wall:base.wall,floor:allowedFloor.includes(s.floor)?s.floor:base.floor,cozy:!migration&&s.cozy===true,sound:typeof s.sound==='boolean'?s.sound:true,active};
+ return{...base,migrated:migration||s.migrated===true,rewarded:[...new Set<number>([...rewarded,...s.completed])],hearts:s.hearts,completed:s.completed,owned,placed,wall:allowedWall.includes(s.wall)?s.wall:base.wall,floor:allowedFloor.includes(s.floor)?s.floor:base.floor,cozy:!migration&&s.cozy===true,sound:typeof s.sound==='boolean'?s.sound:true,theme:s.theme==='dark'?'dark':'light',active};
  }catch{return fresh();}
 }
 export const SAVE_KEY='cozy-tile-club-v1';

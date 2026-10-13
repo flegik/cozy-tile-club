@@ -1,0 +1,12 @@
+import {it,expect} from 'vitest';
+import {themes,themeStyle} from '../src/theme/tokens';
+import {fresh,parseSave} from '../src/save/store';
+import {readFileSync} from 'node:fs';
+import {catalog} from '../src/room/engine';
+function luminance(hex:string){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
+function contrast(a:string,b:string){const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+it('both palettes pass 4.5:1 for primary, secondary, panel and tile text',()=>{for(const [name,p] of Object.entries(themes))for(const [fg,bg] of [[p.text,p.surface],[p.muted,p.surface],[p.muted,p.surface2],[p.text,p.surface3],[p.accent,p.surface],[p.primaryText,p.primary],[p.tileText,p.tile]])expect(contrast(fg,bg),`${name} ${fg}/${bg}`).toBeGreaterThanOrEqual(4.5);});
+it('theme upgrades preserve room, finances, progress, active state and explicit Cozy opt-in',()=>{const s={...fresh(),theme:'dark' as const,cozy:true,hearts:87};expect(parseSave(JSON.stringify(s))).toEqual(s);const {theme,...legacy}=s;const upgraded=parseSave(JSON.stringify(legacy));expect(upgraded.theme).toBe('light');expect(upgraded.cozy).toBe(true);expect(upgraded.placed).toEqual(s.placed);expect(upgraded.hearts).toBe(87);expect(parseSave(JSON.stringify({...s,theme:'unknown'})).theme).toBe('light');});
+it('room item IDs, prices, unlocks and footprints remain compatible',()=>{expect(catalog.map(f=>[f.id,f.price,f.unlock,f.w,f.h])).toEqual([['bed',60,1,2,3],['sofa',50,2,3,1],['desk',45,3,2,1],['shelf',40,1,1,1],['plant',20,1,1,1],['table',30,1,2,1],['lamp',25,2,1,1],['bear',35,4,1,1],['flower',20,1,1,1],['stool',25,2,1,1],['bunny',40,5,1,1],['cabinet',45,3,2,1],['mint-wall',25,1,0,0],['lavender-wall',25,3,0,0],['cream-floor',30,2,0,0]]);});
+
+it('every CSS palette variable is supplied by both runtime themes, including nested panel surfaces',()=>{const css=readFileSync('src/style.css','utf8');const variables=[...new Set([...css.matchAll(/var\((--[a-z0-9-]+)/g)].map(m=>m[1]))];for(const theme of ['light','dark'] as const){const properties=themeStyle(theme);for(const variable of variables)expect(properties[variable],`${theme} missing ${variable}`).toBeTruthy();expect(properties['--surface-2']).toBe(themes[theme].surface2);expect(properties['--surface-3']).toBe(themes[theme].surface3);}});

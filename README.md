@@ -1,8 +1,10 @@
 # 🎀 Cozy Tile Club
 
+**Design 0.3:** Rose Atelier / Midnight Mauve themes, original Sanrio character fan illustrations, quieter German copy and detailed room artwork. [Design notes](DESIGN_REWORK.md).
+
 **Gameplay 0.2:** 30 new strategic puzzles, normal play without automatic Cozy checks, versioned save migration. Full per-level strategy rates and legal loss/win evidence are documented in [GAMEPLAY_REWORK.md](GAMEPLAY_REWORK.md).
 
-Private, mobile-first offline PWA: triple-tile puzzles + an isometric kawaii room. Original SVG artwork; no Sanrio assets, backend, ads, purchases or public deployment.
+Private, mobile-first offline PWA: triple-tile puzzles + an isometric kawaii room. Original SVG fan illustrations, browser-local saves and an owner-private test Site. No backend, ads or purchases.
 
 ## Run
 
