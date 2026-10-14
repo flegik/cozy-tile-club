@@ -24,7 +24,7 @@
 
 main>section{animation:screen-fade .18s ease both}.puzzle-title{animation:screen-fade .2s ease both}@keyframes screen-fade{from{opacity:.35}to{opacity:1}}@media(prefers-reduced-motion:reduce){main>section,.puzzle-title{animation:none}}
 
-.tile.covered{opacity:.6;cursor:default}
+.tile.covered{opacity:1;cursor:default}
 
 /* Motion is isolated from board surfaces: no entry opacity or transform
    transition is reintroduced when reveal/hint/input-lock classes change. */
@@ -33,3 +33,7 @@ main>section{animation:screen-fade .18s ease both}.puzzle-title{animation:screen
 @keyframes burst-ring{0%{opacity:.9;transform:scale(.35)}100%{opacity:0;transform:scale(1.35)}}
 @keyframes flight-sheen{0%{opacity:0;transform:translateX(-60%)}25%{opacity:1}100%{opacity:0;transform:translateX(65%)}}
 @media(prefers-reduced-motion:reduce){.motion-effects,.flight-sheen,.flight-star{display:none}.tile.newly-free::before{animation:none;opacity:0}}
+
+.pending-selections{pointer-events:none}.queued-tile{animation:queued-pick .12s ease-out both;z-index:1199}.tile.covered:disabled{opacity:1}
+@keyframes queued-pick{from{transform:scale(1)}to{transform:translateY(-3px) scale(1.025)}}
+@media(prefers-reduced-motion:reduce){.queued-tile{animation:none}}
