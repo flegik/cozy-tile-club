@@ -40,4 +40,6 @@ Each motion phase owns its animation handles and retains final transform/opacity
 
 Selection now has a radial sparkle, sweep highlight and brighter moving star. Landing has a separate impact ring. Match particles live in a fixed overlay, outside dissolving tray tokens, so they are not dimmed by parent opacity. All effects remain local-only, pointer-transparent, theme-aware and hidden for reduced motion.
 
-90 tests across 14 files include two regressions using the real frame driver and actual application/CSS: unchanged board node identity, opacity and animation during consecutive selections; and the dissolved triple held at zero opacity through the pre-commit microtasks. Existing engine, level, solver, saves, progression and room checks remain unchanged.
+91 tests across 14 files include two regressions using the real frame driver and actual application/CSS: unchanged board node identity, opacity and animation during consecutive selections; and the dissolved triple held at zero opacity through the pre-commit microtasks. Existing engine, level, solver, saves, progression and room checks remain unchanged.
+
+Reduced motion skips effect DOM and effect-only geometry reads. The full multi-level campaign UI roundtrip retains all assertions with a 15-second per-test allowance for shared CI runners; the default timeout for other tests is unchanged.

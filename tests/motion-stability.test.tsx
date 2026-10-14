@@ -24,6 +24,12 @@ async function step(){await act(async()=>{clock+=20;const pending=[...callbacks.
 async function idle(){for(let i=0;i<80&&phase()!=='idle';i++)await step();expect(phase()).toBe('idle');}
 async function pick(id:number){await act(async()=>tile(id).click());}
 
+it('reduced motion commits the move without scheduling frames or constructing invisible effect elements',async()=>{
+ vi.stubGlobal('matchMedia',()=>({matches:true}));await pick(14);
+ expect(phase()).toBe('idle');expect(callbacks.size).toBe(0);expect(container.querySelector('.motion-effects')).toBeNull();
+ expect(JSON.parse(localStorage.getItem(SAVE_KEY)!).campaigns.normal.active.state.removed).toEqual([14]);
+});
+
 it('unselected and newly revealed board nodes keep their surface opacity and never restart an entry animation',async()=>{
  const untouched=tile(23),revealed=tile(4),before=getComputedStyle(untouched).opacity;
  expect(getComputedStyle(untouched).animation).toBe('none');expect(getComputedStyle(untouched).transition).toBe('none');
