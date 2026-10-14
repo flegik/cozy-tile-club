@@ -1,5 +1,7 @@
 # 🎀 Cozy Tile Club
 
+**Game Feel 0.7:** Curved tile flights, visible triple landings/matches, stable grouped visual tray, new vector character portraits and gesture-unlocked sound. [Architecture and QA notes](GAME_FEEL.md).
+
 **Campaign 0.6:** 100 certified levels, ten collapsible collections and advanced difficulty calibration. Existing levels 1–30 and saves stay intact. [Campaign evidence](CAMPAIGN_100.md).
 
 **Modes 0.4:** Dark by default, 3 Undo + 1 safe hint per attempt, independent Normal/Cozy campaigns and shared room/economy. [Mode/save migration notes](MODES_REWORK.md).
