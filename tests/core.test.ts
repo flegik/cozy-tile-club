@@ -16,7 +16,7 @@ describe('actual puzzle rules',()=>{
  it('undo restores exact previous state including loss',()=>{const s=move(tiles,emptyState(),0);expect(undo([emptyState(),s])).toEqual({state:s,history:[emptyState()]});expect(undo([])).toBeNull();});
 });
 describe('independent solver',()=>{
- it('proves every shipped level with actual engine replay',()=>{expect(levels).toHaveLength(30);for(const l of levels){const r=solve(l.tiles,emptyState(),150000);expect(r.status).toBe('solved');let s=emptyState();for(const id of r.path)s=move(l.tiles,s,id);expect(s.status).toBe('won');}});
+ it('proves every shipped level with actual engine replay',()=>{expect(levels).toHaveLength(100);for(const l of levels){const r=solve(l.tiles,emptyState(),150000);expect(r.status).toBe('solved');let s=emptyState();for(const id of r.path)s=move(l.tiles,s,id);expect(s.status).toBe('won');}});
  it('distinguishes budget exhaustion and true failure',()=>{expect(solve(tiles,emptyState(),0).status).toBe('budget');expect(solve(tiles.slice(0,1),emptyState()).status).toBe('unsolvable');});
  it('agrees with exhaustive gameplay oracle on all reachable small states',()=>{
  const t:Tile[]=Array.from({length:9},(_,id)=>({id,x:id%3,y:id<3?0:id<6?.42:1.6,z:id<3?0:id<6?1:0,motif:id%3}));const memo=new Map<string,boolean>();

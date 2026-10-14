@@ -9,3 +9,5 @@
 
 /* iOS standalone: keep controls clear of notch, home indicator and landscape cutouts. */
 .app{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}button,[role=button],.import-button{touch-action:manipulation}.overlay{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}.placement-controls select{font-size:16px}
+
+.chapter>summary{cursor:pointer;list-style:none;min-height:64px;margin:0}.chapter>summary::-webkit-details-marker{display:none}.chapter>summary::after{content:'+';color:var(--accent);font-size:23px;min-width:20px;text-align:center}.chapter[open]>summary::after{content:'−'}.chapter[open] .map-grid{margin-top:18px}.chapter>summary:focus-visible{outline:3px solid var(--accent);outline-offset:5px;border-radius:10px}.chapter-header p{font-size:11px;margin-top:5px}

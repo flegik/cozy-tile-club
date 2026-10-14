@@ -1,5 +1,7 @@
 # 🎀 Cozy Tile Club
 
+**Campaign 0.6:** 100 certified levels, ten collapsible collections and advanced difficulty calibration. Existing levels 1–30 and saves stay intact. [Campaign evidence](CAMPAIGN_100.md).
+
 **Modes 0.4:** Dark by default, 3 Undo + 1 safe hint per attempt, independent Normal/Cozy campaigns and shared room/economy. [Mode/save migration notes](MODES_REWORK.md).
 
 **Design 0.3:** Rose Atelier / Midnight Mauve themes, original Sanrio character fan illustrations, quieter German copy and detailed room artwork. [Design notes](DESIGN_REWORK.md).
@@ -70,7 +72,7 @@ Fairness does not guarantee that every legal move wins. The explicit full-inform
 
 `generate(seed, tier)` creates a balanced candidate, not a release-approved level. `buildPack()` performs independent solver certification and behavioral curation. Seven masks, randomized occupied cells, two to four offset layers and five to eight motifs create distinct dependency layouts. Metrics contain exact random/greedy/lookahead trial rates, blocked counts, motif count, solver effort and a behavior-derived index. See `GAMEPLAY_REWORK.md` for formulas, thresholds, seeds and all 30 rates.
 
-Run `npm run levels` to deterministically curate a new release pack. `npm run validate:heldout` produces an independent validation stream. Existing saves now identify pack 2: old active attempts are safely cleared while room/economy/completed progress remain. Normal and Cozy are independent campaigns. Legacy progress is assigned to Normal; Cozy starts empty. Active pack-2 attempts migrate with fresh initial help budgets because previous usage was not tracked. Voluntary campaign restart preserves the room/economy and tracks already-paid rewards separately. Freeze released seeds/IDs going forward or bump the pack version and migrate. Larger campaigns need UI/save caps extended together. **Never ship unproven candidates.**
+Run `npm run levels` to append configured release stages. It checks release locks and never regenerates an already complete campaign. `npm run validate:heldout` produces an independent validation stream. Existing saves now identify pack 2: old active attempts are safely cleared while room/economy/completed progress remain. Normal and Cozy are independent campaigns. Legacy progress is assigned to Normal; Cozy starts empty. Active pack-2 attempts migrate with fresh initial help budgets because previous usage was not tracked. Voluntary campaign restart preserves the room/economy and tracks already-paid rewards separately. Freeze released seeds/IDs going forward or bump the pack version and migrate. Campaign/save/tracking caps now derive from the level count; future collections are listed in `src/ui/collections.ts`. **Never ship unproven candidates.**
 
 ## New furniture and motifs
 
@@ -80,7 +82,7 @@ Add a motif name and original SVG renderer to `Motif.tsx`, then extend the gener
 
 ## Validation
 
-`npm test`: rule edge cases, independent exhaustive small-state oracle comparison, all 30 shipped win/loss certificates, 500 candidate seeds generated twice, 180,000 reproducible strategy simulations, room footprints, save validation, first-clear economy, React DOM interaction flows including ordinary loss and explicit Cozy opt-in and a simulated service-worker offline test. `npm run build`: strict TypeScript plus Vite and precache generation. UI tests run in jsdom with a solver-backed Worker double, **not a real browser**. The service-worker test simulates install/activate/offline handlers, not an actual Android installation.
+`npm test`: rule edge cases, independent exhaustive small-state oracle comparison, all 100 shipped win/loss certificates, 500 candidate seeds generated twice, 180,000 reproducible strategy simulations, room footprints, save validation, first-clear economy, React DOM interaction flows including ordinary loss and explicit Cozy opt-in and a simulated service-worker offline test. `npm run build`: strict TypeScript plus Vite and precache generation. UI tests run in jsdom with a solver-backed Worker double, **not a real browser**. The service-worker test simulates install/activate/offline handlers, not an actual Android installation.
 
 No actual Android/Chrome viewport, accessibility audit, real-worker browser timing or offline installation was verified in this environment because the supported browser-QA capability was unavailable. First device review should test widths 360/393/412 px, tall and short screens, tap accuracy, hints/cozy warnings, phone reload, flight mode and installability. The tested MVP has also passed [GitHub Actions](https://github.com/flegik/cozy-tile-club/actions/runs/38473049243). See `VALIDATION.md` for exact verification evidence.
 
@@ -110,3 +112,9 @@ On iPhone, open the URL in Safari → Share → Add to Home Screen → enable Op
 Saves are local to the origin and browser context. Moving from the previous private test address to github.io does not copy storage automatically: export your full save on the old address and import on the new address. Safari and installed iOS web-app storage may differ; use export/import if progress does not appear after installation. Normal updates neither rename the save key nor reset campaigns, help, room or settings. Clearing browser data/uninstalling can remove local saves; keep an export.
 
 Service-worker caches are scoped by this application's name and base pathname. Activation cannot delete WORDLE caches; requests outside this app's subpath are untouched. Every build gets a content-derived cache version, new precaching is atomic, and no update forces a game reload. A Pages release is publicly viewable independently of repository visibility.
+
+## Campaign 0.6 · 100 levels
+
+The first 30 remain exactly unchanged; 70 certified levels extend the campaign through Schwer, Sehr schwer, Experte, Master and Finale. Ten collapsible collections, dynamic save/tracking limits, independent Normal/Cozy progress and final-level completion support all 100. Shared room/economy and help limits are unchanged. Pack 2/schema 3 and the original save key are retained.
+
+See [CAMPAIGN_100.md](CAMPAIGN_100.md) for all acceptance criteria, average strategy success rates and limitations. `npm run validate:advanced` separately reproduces 560,000 training/holdout games for the extension. Normal `npm test` uses proof replays plus smaller independent behavior samples, while preserving the existing baseline checks. `release-lock.json` makes accidental edits to any released level visible.

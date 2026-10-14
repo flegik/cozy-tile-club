@@ -1,6 +1,6 @@
 {
   "name": "cozy-tile-club",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,8 @@
     "check": "npm test && npm run build",
     "levels": "node scripts/generate-levels.mjs",
     "validate:heldout": "vite-node scripts/validate-heldout.ts",
-    "check:pages": "node scripts/check-pages.mjs"
+    "check:pages": "node scripts/check-pages.mjs",
+    "validate:advanced": "vite-node scripts/validate-advanced.ts"
   },
   "dependencies": {
     "react": "^19.2.0",

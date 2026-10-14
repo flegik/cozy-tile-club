@@ -1,0 +1,115 @@
+{
+  "rows": [
+    {
+      "range": "1–10",
+      "random": 0.0346,
+      "greedy": 0.4999,
+      "threePly": 1,
+      "sixPly": 1,
+      "effectiveChoices": null,
+      "decisionDensity": null,
+      "matchHorizon": null,
+      "meanTiles": 27
+    },
+    {
+      "range": "11–20",
+      "random": 0.0003,
+      "greedy": 0.1375,
+      "threePly": 0.9925,
+      "sixPly": 0.9975,
+      "effectiveChoices": null,
+      "decisionDensity": null,
+      "matchHorizon": null,
+      "meanTiles": 31.5
+    },
+    {
+      "range": "21–30",
+      "random": 0,
+      "greedy": 0.0234,
+      "threePly": 0.6707,
+      "sixPly": 0.896,
+      "effectiveChoices": null,
+      "decisionDensity": null,
+      "matchHorizon": null,
+      "meanTiles": 34.5
+    },
+    {
+      "range": "31–40",
+      "random": 0,
+      "greedy": 0.0059,
+      "threePly": 0.3129,
+      "sixPly": 0.7654,
+      "effectiveChoices": 5.1917,
+      "decisionDensity": 0.9305,
+      "matchHorizon": 2.2,
+      "meanTiles": 36
+    },
+    {
+      "range": "41–50",
+      "random": 0,
+      "greedy": 0.001,
+      "threePly": 0.1997,
+      "sixPly": 0.6663,
+      "effectiveChoices": 5.677,
+      "decisionDensity": 0.9386,
+      "matchHorizon": 2.6,
+      "meanTiles": 39
+    },
+    {
+      "range": "51–60",
+      "random": 0,
+      "greedy": 0.0004,
+      "threePly": 0.1703,
+      "sixPly": 0.5083,
+      "effectiveChoices": 5.582,
+      "decisionDensity": 0.9437,
+      "matchHorizon": 2.8,
+      "meanTiles": 39
+    },
+    {
+      "range": "61–70",
+      "random": 0,
+      "greedy": 0.0002,
+      "threePly": 0.0684,
+      "sixPly": 0.451,
+      "effectiveChoices": 5.7548,
+      "decisionDensity": 0.9429,
+      "matchHorizon": 2.8,
+      "meanTiles": 42
+    },
+    {
+      "range": "71–80",
+      "random": 0,
+      "greedy": 0.0001,
+      "threePly": 0.0455,
+      "sixPly": 0.3357,
+      "effectiveChoices": 5.5094,
+      "decisionDensity": 0.9475,
+      "matchHorizon": 3.2,
+      "meanTiles": 42
+    },
+    {
+      "range": "81–90",
+      "random": 0,
+      "greedy": 0,
+      "threePly": 0.0335,
+      "sixPly": 0.2892,
+      "effectiveChoices": 5.8025,
+      "decisionDensity": 0.9428,
+      "matchHorizon": 3.4,
+      "meanTiles": 42
+    },
+    {
+      "range": "91–100",
+      "random": 0,
+      "greedy": 0,
+      "threePly": 0.02,
+      "sixPly": 0.177,
+      "effectiveChoices": 5.9357,
+      "decisionDensity": 0.9382,
+      "matchHorizon": 2.7,
+      "meanTiles": 42
+    }
+  ],
+  "notes": "Rates are deterministic policy benchmarks, not human win probabilities. Six-ply is a width-six beam, not exhaustive search. Effective choices/density and sampled next-match horizon are path-dependent estimates. Unsafe and unknown branches stay separate."
+}

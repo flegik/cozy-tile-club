@@ -1,13 +1,13 @@
 import {type Tile,type State,emptyState} from './types';
 import {accessible,move} from './engine';
 import {rng} from './random';
-export type Strategy='random'|'greedy'|'lookahead';
+export type Strategy='random'|'greedy'|'lookahead'|'advanced';
 export type Simulation={trials:number;wins:number;rate:number;lossPath:number[];meanPeak:number;meanDecisions:number};
 export function prepare(tiles:Tile[]){
  const bits=tiles.map(t=>1n<<BigInt(t.id));
  const blockers=tiles.map(t=>tiles.reduce((m,u,i)=>u.z>t.z&&Math.abs(t.x-u.x)<.94&&Math.abs(t.y-u.y)<.94?m|bits[i]:m,0n));
  const all=bits.reduce((a,b)=>a|b,0n),motifs=Math.max(...tiles.map(t=>t.motif))+1;
- return {tiles,bits,blockers,all,motifs,evaluations:new Map<bigint,number>(),lookahead:new Map<bigint,number[]>()};
+ return {tiles,bits,blockers,all,motifs,evaluations:new Map<bigint,number>(),lookahead:new Map<bigint,number[]>(),advanced:new Map<bigint,number[]>()};
 }
 type Board=ReturnType<typeof prepare>;
 export type Compact={removed:bigint;counts:number[];used:number};
@@ -27,6 +27,14 @@ function lookScores(b:Board,s:Compact,ids:number[]){const cached=b.lookahead.get
  }
  return best;
 });if(b.lookahead.size<100000)b.lookahead.set(s.removed,result);return result;}
+// Six-ply beam search with independent per-root scores and deduplicated frontiers.
+// Same public atlas information as the three-ply policy; never reads a certificate.
+function advancedScores(b:Board,s:Compact,ids:number[]){const cached=b.advanced.get(s.removed);if(cached)return cached;
+ const scores=ids.map(i=>{const first=step(b,s,i);if(first.used>=7)return -10000;let frontier=[first];
+ for(let depth=1;depth<6;depth++){const unique=new Map<bigint,Compact>();for(const state of frontier){if(state.removed===b.all){unique.set(state.removed,state);continue;}for(const id of free(b,state)){const next=step(b,state,id);if(next.used<7)unique.set(next.removed,next);}}
+ if(!unique.size)return -10000;frontier=[...unique.values()].sort((a,c)=>evaluate(b,c)-evaluate(b,a)).slice(0,6);}
+ return evaluate(b,frontier[0]);});if(b.advanced.size<100000)b.advanced.set(s.removed,scores);return scores;
+}
 export function simulate(tiles:Tile[],strategy:Strategy,trials=1000,seed=1):Simulation{
  const b=prepare(tiles);let wins=0,totalPeak=0,totalChoices=0;let lossPath:number[]=[];
  for(let trial=0;trial<trials;trial++){
@@ -34,7 +42,7 @@ export function simulate(tiles:Tile[],strategy:Strategy,trials=1000,seed=1):Simu
   while(s.used<7&&s.removed!==b.all){const ids=free(b,s);if(!ids.length)break;let candidates=ids;
    if(ids.length>1)decisions++;
    if(strategy==='greedy'){const max=Math.max(...ids.map(i=>s.counts[tiles[i].motif]));candidates=ids.filter(i=>s.counts[tiles[i].motif]===max);}
-   if(strategy==='lookahead'){const scores=lookScores(b,s,ids),best=Math.max(...scores);candidates=ids.filter((_,i)=>scores[i]===best);}
+   if(strategy==='lookahead'||strategy==='advanced'){const scores=strategy==='advanced'?advancedScores(b,s,ids):lookScores(b,s,ids),best=Math.max(...scores);candidates=ids.filter((_,i)=>scores[i]===best);}
    const i=candidates[Math.floor(random()*candidates.length)];path.push(tiles[i].id);s=step(b,s,i);peak=Math.max(peak,s.used);
   }
   if(s.removed===b.all&&s.used===0)wins++;else if(!lossPath.length&&s.used>=7)lossPath=path;
