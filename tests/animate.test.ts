@@ -1,15 +1,12 @@
 // @vitest-environment jsdom
 import {it,expect,vi,afterEach} from 'vitest';
 import {animateElement} from '../src/motion/animate';
-afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();document.head.innerHTML='';document.body.innerHTML='';});
-function setup(){vi.stubGlobal('CSS',{supports:()=>true});const el=document.createElement('div');document.body.append(el);return el;}
-it('CSS fallback preserves exact flight transforms and resolves only its own completion event',async()=>{
- const el=setup();el.style.animation='existing 1s';const a=animateElement(el,[{transform:'translate3d(0,0,0)',offset:0},{transform:'translate3d(20px,400px,0) scale(.8)',offset:1}],340)!;
- const name=el.style.animation.split(' ')[0];expect(document.head.textContent).toContain('100%{transform:translate3d(20px,400px,0) scale(.8);}');
- let complete=false;void a.finished.then(()=>complete=true);el.dispatchEvent(new Event('animationend'));await Promise.resolve();expect(complete).toBe(false);
- const event=new Event('animationend');Object.defineProperty(event,'animationName',{value:name});el.dispatchEvent(event);await a.finished;expect(complete).toBe(true);expect(el.style.animation).toBe('existing 1s');expect(document.head.querySelector('style')).toBeNull();a.cancel();
+afterEach(()=>{vi.unstubAllGlobals();document.body.innerHTML='';});
+function setup(){const callbacks=new Map<number,FrameRequestCallback>();let next=0;vi.stubGlobal('requestAnimationFrame',(fn:FrameRequestCallback)=>{callbacks.set(++next,fn);return next;});vi.stubGlobal('cancelAnimationFrame',(id:number)=>callbacks.delete(id));const el=document.createElement('div');document.body.append(el);return{el,callbacks,tick:(time:number)=>{const pending=[...callbacks.values()];callbacks.clear();for(const fn of pending)fn(time);}};}
+it('frame timeline renders intermediate geometry then reaches the exact destination before completing',async()=>{
+ const {el,tick,callbacks}=setup();const a=animateElement(el,[{transform:'translate3d(0px,0px,0) scale(1)',opacity:1,offset:0},{transform:'translate3d(20px,400px,0) scale(.8)',opacity:0,offset:1}],340)!;
+ let complete=false;void a.finished.then(()=>complete=true);tick(0);tick(170);expect(el.style.transform).not.toContain('400px');expect(Number(el.style.opacity)).toBeGreaterThan(0);expect(Number(el.style.opacity)).toBeLessThan(1);expect(complete).toBe(false);tick(340);await a.finished;expect(el.style.transform).toBe('translate3d(20px,400px,0) scale(0.8)');expect(el.style.opacity).toBe('0');expect(callbacks.size).toBe(0);a.cancel();expect(el.style.transform).toBe('');expect(el.style.opacity).toBe('');
 });
-it('CSS cancellation and missing-event watchdog release input and remove styles without leaking timers',async()=>{
- vi.useFakeTimers();const el=setup();const a=animateElement(el,[{opacity:1},{opacity:0}],250)!;a.cancel();await a.finished;expect(vi.getTimerCount()).toBe(0);expect(document.head.querySelector('style')).toBeNull();
- const b=animateElement(el,[{opacity:1},{opacity:0}],250)!;await vi.advanceTimersByTimeAsync(370);await b.finished;expect(el.style.animation).toBe('');expect(vi.getTimerCount()).toBe(0);
+it('cancellation restores original styles, resolves completion and ignores callbacks already dispatched',async()=>{
+ const {el,tick,callbacks}=setup();el.style.transform='scale(.9)';const a=animateElement(el,[{transform:'scale(1)'},{transform:'scale(1.1)'}],110)!;tick(0);tick(50);const late=[...callbacks.values()];a.cancel();await a.finished;expect(callbacks.size).toBe(0);for(const fn of late)fn(110);expect(el.style.transform).toBe('scale(.9)');a.cancel();
 });

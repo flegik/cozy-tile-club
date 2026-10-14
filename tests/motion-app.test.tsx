@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import React,{act} from 'react';import {createRoot,type Root} from 'react-dom/client';import {it,expect,beforeEach,afterEach,vi} from 'vitest';import App from '../src/App';import {fresh,SAVE_KEY} from '../src/save/store';
+vi.mock('../src/motion/animate',()=>({animateElement:()=>{let resolve!:()=>void;const finished=new Promise<void>(r=>resolve=r);const animation={finished,cancel:resolve,resolve};animations.push(animation);return animation;}}));
 let root:Root,container:HTMLDivElement,animations:Array<{resolve:()=>void;cancel:()=>void}>;
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;
-beforeEach(async()=>{animations=[];localStorage.clear();localStorage.setItem(SAVE_KEY,JSON.stringify({...fresh(),tutorialCompleted:true,sound:false}));Object.defineProperty(Element.prototype,'animate',{configurable:true,value:vi.fn(()=>{let resolve!:()=>void,reject!:(r:unknown)=>void;const finished=new Promise<void>((a,b)=>{resolve=a;reject=b;});const animation={finished,cancel:()=>reject(Error('cancel')),resolve};animations.push(animation);return animation;})});container=document.createElement('div');document.body.append(container);root=createRoot(container);await act(async()=>root.render(<App/>));await button('Spielen');});
-afterEach(async()=>{await act(async()=>root.unmount());container.remove();delete(Element.prototype as any).animate;});
+beforeEach(async()=>{animations=[];localStorage.clear();localStorage.setItem(SAVE_KEY,JSON.stringify({...fresh(),tutorialCompleted:true,sound:false}));container=document.createElement('div');document.body.append(container);root=createRoot(container);await act(async()=>root.render(<App/>));await button('Spielen');});
+afterEach(async()=>{await act(async()=>root.unmount());container.remove();});
 const saved=()=>JSON.parse(localStorage.getItem(SAVE_KEY)!);
 async function button(text:string){await act(async()=>[...container.querySelectorAll('button')].find(b=>b.textContent?.includes(text))!.click());}
 async function tile(){const el=container.querySelector<HTMLButtonElement>('.tile.free')!;const id=Number(el.dataset.tileId);await act(async()=>el.click());return id;}

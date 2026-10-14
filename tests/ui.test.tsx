@@ -11,7 +11,8 @@ import {levels} from '../src/puzzle/levels';
 let root:Root;let container:HTMLDivElement;
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;
 class FakeWorker{static calls=0;onmessage:any;onerror:any;terminated=false;terminate(){this.terminated=true;}postMessage(data:any){FakeWorker.calls++;queueMicrotask(()=>{if(!this.terminated)this.onmessage?.({data:solve(data.tiles,data.state,data.budget)});});}}
-beforeEach(async()=>{vi.stubGlobal('Worker',FakeWorker);FakeWorker.calls=0;localStorage.clear();localStorage.setItem(SAVE_KEY,JSON.stringify({...fresh(),tutorialCompleted:true,sound:false}));container=document.createElement('div');document.body.append(container);root=createRoot(container);await act(async()=>root.render(<App/>));});
+// These flow tests use reduced motion; intermediate timelines are covered separately.
+beforeEach(async()=>{vi.stubGlobal('matchMedia',()=>({matches:true}));vi.stubGlobal('Worker',FakeWorker);FakeWorker.calls=0;localStorage.clear();localStorage.setItem(SAVE_KEY,JSON.stringify({...fresh(),tutorialCompleted:true,sound:false}));container=document.createElement('div');document.body.append(container);root=createRoot(container);await act(async()=>root.render(<App/>));});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.unstubAllGlobals();});
 function find(text:string){const button=[...container.querySelectorAll('button')].find(b=>b.textContent?.includes(text));if(!button)throw new Error('Missing button '+text);return button;}
 async function click(element:Element){await act(async()=>{element.dispatchEvent(new MouseEvent('click',{bubbles:true}));await Promise.resolve();});}
