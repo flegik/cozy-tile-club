@@ -7,9 +7,9 @@ function ease(t:number){const curve=(s:number,a:number,b:number)=>3*(1-s)**2*s*a
 // This works without WAAPI and retains intermediate frames in visual captures.
 export function animateElement(element:Element,keys:Keyframe[],duration:number):MotionAnimation|null{
  if(!(element instanceof HTMLElement)||typeof window.requestAnimationFrame!=='function')return null;
- const node=element;const original={transform:node.style.transform,opacity:node.style.opacity};let resolve!:()=>void,done=false,frame=0,started:number|undefined;
+ const node=element;const original={transform:node.style.transform,opacity:node.style.opacity};let resolve!:()=>void,done=false,frame=0,released=false,started:number|undefined;
  const finished=new Promise<void>(r=>resolve=r),offsets=keys.map((k,i)=>k.offset??i/(keys.length-1));
- function cancel(){window.cancelAnimationFrame(frame);node.style.transform=original.transform;node.style.opacity=original.opacity;if(!done){done=true;resolve();}}
+ function cancel(){if(released)return;released=true;window.cancelAnimationFrame(frame);node.style.transform=original.transform;node.style.opacity=original.opacity;if(!done){done=true;resolve();}}
  function tick(time:number){if(done)return;started??=time;const raw=Math.min(1,(time-started)/duration),progress=raw===0?0:raw===1?1:ease(raw);let i=0;while(i<keys.length-2&&progress>offsets[i+1])i++;const a=keys[i],b=keys[i+1],t=Math.max(0,Math.min(1,(progress-offsets[i])/(offsets[i+1]-offsets[i]||1)));
   if(a.transform!==undefined&&b.transform!==undefined)node.style.transform=transformBetween(String(a.transform),String(b.transform),t);
   if(a.opacity!==undefined&&b.opacity!==undefined)node.style.opacity=String(Number(a.opacity)+(Number(b.opacity)-Number(a.opacity))*t);
