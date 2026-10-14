@@ -8,11 +8,11 @@ afterEach(async()=>{await act(async()=>root.unmount());container.remove();});
 const saved=()=>JSON.parse(localStorage.getItem(SAVE_KEY)!);
 async function button(text:string){await act(async()=>[...container.querySelectorAll('button')].find(b=>b.textContent?.includes(text))!.click());}
 async function tile(){const el=container.querySelector<HTMLButtonElement>('.tile.free')!;const id=Number(el.dataset.tileId);await act(async()=>el.click());return id;}
-it('distinct rapid taps commit immediately during flight; duplicate taps are ignored and queued tiles have immediate feedback',async()=>{
+it('distinct rapid taps commit immediately during flight; duplicate taps are ignored and all flights start immediately',async()=>{
  const a=container.querySelector<HTMLButtonElement>('[data-tile-id="14"]')!,b=container.querySelector<HTMLButtonElement>('[data-tile-id="19"]')!,c=container.querySelector<HTMLButtonElement>('[data-tile-id="21"]')!;
  await act(async()=>{a.click();a.click();b.click();c.click();});
  expect(saved().campaigns.normal.active.state.removed).toEqual([14,19,21]);expect(saved().campaigns.normal.active.state.tray).toEqual([]);
- expect(container.querySelectorAll('[data-pending-id]')).toHaveLength(2);
+ expect(container.querySelectorAll('[data-pending-id]')).toHaveLength(2);expect(container.querySelectorAll('[data-flight-id]')).toHaveLength(3);expect(animations.length).toBeGreaterThanOrEqual(3);
  expect(container.querySelector<HTMLButtonElement>('.tile.free')!.disabled).toBe(false);
  await button('Rückgängig');expect(saved().campaigns.normal.active.state.removed).toEqual([14,19]);expect(saved().campaigns.normal.active.state.tray).toEqual([2,2]);expect(saved().campaigns.normal.active.help.undo).toBe(2);expect(container.querySelectorAll('[data-pending-id]')).toHaveLength(0);
 });

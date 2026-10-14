@@ -5,18 +5,32 @@ import {groupTray,trayTiles,stageMove,box,flightPath,type Box,type TrayTile} fro
 import {reducedMotion,type MotionPreference} from './preference';
 import {playSound} from '../audio/sound';
 import {animateElement,type MotionAnimation} from './animate';
-export type Frame={serial:number;kind:'select'|'undo';phase:'flight'|'land'|'match'|'settle';id:number;motif:number;source:Box;tokens:TrayTile[];final:TrayTile[];matched:number[];revealed:number[];sound:boolean;won:boolean};
-type QueuedMove={before:State;after:State;id:number;source:Box;sound:boolean};
+export type Frame={serial:number;kind:'select'|'undo';phase:'flight'|'land'|'match'|'settle';id:number;motif:number;source:Box;tokens:TrayTile[];final:TrayTile[];matched:number[];revealed:number[];sound:boolean;won:boolean;flightDuration?:number};
+type QueuedMove={before:State;after:State;id:number;source:Box;sound:boolean;landed?:boolean;started?:number};
 export function usePuzzleMotion(tiles:Tile[],state:State,preference:MotionPreference='system'){
+ const parallel=useRef(new Map<number,MotionAnimation>());
  const queue=useRef<QueuedMove[]>([]),pendingRef=useRef<HTMLDivElement|null>(null);
  const [queued,setQueued]=useState<QueuedMove[]>([]),[frame,setFrame]=useState<Frame|null>(null),[revealed,setRevealed]=useState<number[]>([]),[targetBox,setTargetBox]=useState<Box|null>(null),[matchBox,setMatchBox]=useState<Box|null>(null);const locked=useRef(false),epoch=useRef(0),animations=useRef(new Set<MotionAnimation>()),flightRef=useRef<HTMLDivElement|null>(null),trayRef=useRef<HTMLDivElement|null>(null),boardRef=useRef<HTMLDivElement|null>(null),previousRects=useRef(new Map<number,Box>());
  const reduced=()=>reducedMotion(preference);
- const cancel=useCallback(()=>{epoch.current++;locked.current=false;queue.current=[];setQueued([]);for(const a of animations.current)a.cancel();animations.current.clear();setFrame(null);setRevealed([]);setTargetBox(null);setMatchBox(null);},[]);
- function run(element:Element|null,keys:Keyframe[],duration:number,scope?:Set<MotionAnimation>){if(!element||reduced())return Promise.resolve();const a=animateElement(element,keys,duration,duration===320?1.5:3);if(!a)return Promise.resolve();animations.current.add(a);scope?.add(a);if(queue.current.length)a.accelerate?.(3);return a.finished.catch(()=>{}).then(()=>{if(!scope){animations.current.delete(a);a.cancel();}});}
+ const cancel=useCallback(()=>{epoch.current++;locked.current=false;queue.current=[];setQueued([]);parallel.current.clear();for(const a of animations.current)a.cancel();animations.current.clear();setFrame(null);setRevealed([]);setTargetBox(null);setMatchBox(null);},[]);
+ function run(element:Element|null,keys:Keyframe[],duration:number,scope?:Set<MotionAnimation>){if(!element||reduced())return Promise.resolve();const a=animateElement(element,keys,duration,duration===320?1.5:3);if(!a)return Promise.resolve();animations.current.add(a);scope?.add(a);return a.finished.catch(()=>{}).then(()=>{if(!scope){animations.current.delete(a);a.cancel();}});}
  function remember(){if(reduced()){previousRects.current.clear();return;}previousRects.current=new Map(Array.from(trayRef.current?.querySelectorAll<HTMLElement>('[data-tray-id]')??[]).map(el=>[Number(el.dataset.trayId),box(el)]));}
- function startMove(request:QueuedMove){const {before,after,id,sound}=request;const pending=pendingRef.current?.querySelector(`[data-pending-id="${id}"]`);const source=pending?box(pending):request.source;locked.current=true;setTargetBox(null);setMatchBox(null);remember();const staged=stageMove(tiles,before,id);setRevealed([]);setFrame({serial:++epoch.current,kind:'select',phase:'flight',id,motif:tiles.find(t=>t.id===id)!.motif,source,tokens:staged.tokens,final:groupTray(trayTiles(tiles,after)),matched:staged.matched,revealed:tiles.filter(t=>!accessible(tiles,before,t.id)&&accessible(tiles,after,t.id)).map(t=>t.id),sound,won:after.status==='won'});}
- const begin=(before:State,after:State,id:number,source:Box,sound:boolean)=>{const request={before,after,id,source,sound};if(before.removed.includes(id)||queue.current.some(q=>q.id===id))return false;if(locked.current){queue.current.push(request);setQueued([...queue.current]);for(const animation of animations.current)animation.accelerate?.(3);}else startMove(request);return true;};
+ function startMove(request:QueuedMove){const {before,after,id,sound}=request;const pending=pendingRef.current?.querySelector(`[data-pending-id="${id}"]`);const source=pending?box(pending):request.source;const prior=parallel.current.get(id);prior?.cancel();if(prior)animations.current.delete(prior);parallel.current.delete(id);locked.current=true;setTargetBox(null);setMatchBox(null);remember();const staged=stageMove(tiles,before,id);setRevealed([]);setFrame({serial:++epoch.current,kind:'select',phase:request.landed?'land':'flight',id,motif:tiles.find(t=>t.id===id)!.motif,source,tokens:staged.tokens,final:groupTray(trayTiles(tiles,after)),matched:staged.matched,revealed:tiles.filter(t=>!accessible(tiles,before,t.id)&&accessible(tiles,after,t.id)).map(t=>t.id),sound,won:after.status==='won',flightDuration:request.started===undefined?340:Math.max(60,340-(performance.now()-request.started))});}
+ const begin=(before:State,after:State,id:number,source:Box,sound:boolean)=>{const request={before,after,id,source,sound};if(before.removed.includes(id)||queue.current.some(q=>q.id===id))return false;if(locked.current){queue.current.push(request);setQueued([...queue.current]);}else startMove(request);return true;};
  const beginUndo=(before:State,after:State,id:number,sound:boolean)=>{const index=stageMove(tiles,after,id).index;const el=pendingRef.current?.querySelector(`[data-pending-id="${id}"]`)??(frame?.id===id?flightRef.current:null)??trayRef.current?.querySelector(`[data-tray-id="${id}"]`)??trayRef.current?.querySelector(`[data-slot="${index}"]`);const source=el?box(el):{left:0,top:0,width:40,height:44};cancel();remember();locked.current=true;setFrame({serial:++epoch.current,kind:'undo',phase:'flight',id,motif:tiles.find(t=>t.id===id)!.motif,source,tokens:groupTray(trayTiles(tiles,after)),final:groupTray(trayTiles(tiles,after)),matched:[],revealed:[id],sound,won:false});playSound('undo',sound);};
+ useLayoutEffect(()=>{
+  for(const request of queue.current){
+   if(request.started!==undefined)continue;
+   const node=pendingRef.current?.querySelector(`[data-pending-id="${request.id}"]`),index=stageMove(tiles,request.before,request.id).index,target=trayRef.current?.querySelector(`[data-slot="${index}"]`);
+   if(!node||!target)continue;request.started=performance.now();
+   const destination=box(target);
+   if(reduced()){request.landed=true;continue;}
+   const animation=animateElement(node,flightPath(request.source,destination),340);
+   if(!animation){request.landed=true;continue;}
+   parallel.current.set(request.id,animation);animations.current.add(animation);
+   void animation.finished.catch(()=>{}).then(()=>{if(queue.current.includes(request)&&parallel.current.get(request.id)===animation){request.landed=true;playSound('land',request.sound);}});
+  }
+ },[queued]);
  useLayoutEffect(()=>{
   if(!frame)return;const scope=new Set<MotionAnimation>();const animate=(el:Element|null,keys:Keyframe[],duration:number)=>run(el,keys,duration,scope);const serial=frame.serial;let alive=true;const valid=()=>alive&&serial===epoch.current;const token=(id:number)=>trayRef.current?.querySelector(`[data-tray-id="${id}"]`)??null;
   const shifts:Promise<void>[]=[];for(const el of trayRef.current?.querySelectorAll<HTMLElement>('[data-tray-id]')??[]){const old=previousRects.current.get(Number(el.dataset.trayId));if(old){const current=box(el),dx=old.left-current.left,dy=old.top-current.top;if(Math.abs(dx)+Math.abs(dy)>.1)shifts.push(animate(el,[{transform:`translate3d(${dx}px,${dy}px,0)`},{transform:'translate3d(0,0,0)'}],180));}}previousRects.current.clear();
@@ -25,7 +39,7 @@ export function usePuzzleMotion(tiles:Tile[],state:State,preference:MotionPrefer
    if(frame.phase==='flight'){
     const index=frame.tokens.findIndex(t=>t.id===frame.id);const target=frame.kind==='undo'?boardRef.current?.querySelector(`[data-tile-id="${frame.id}"]`):trayRef.current?.querySelector(`[data-slot="${index}"]`);
     if(!target){if(valid())cancel();return;}
-    const destination=box(target);if(!reduced())setTargetBox(destination);await animate(flightRef.current,flightPath(frame.source,destination),340);if(!valid())return;setRevealed(frame.revealed);advance('land');
+    const destination=box(target);if(!reduced())setTargetBox(destination);await animate(flightRef.current,flightPath(frame.source,destination),frame.flightDuration??340);if(!valid())return;setRevealed(frame.revealed);advance('land');
    }else if(frame.phase==='land'){
     playSound('land',frame.sound);const target=frame.kind==='undo'?boardRef.current?.querySelector(`[data-tile-id="${frame.id}"]`):token(frame.id);
     await animate(target??null,[{transform:'scale(.9)'},{transform:'scale(1.1)',offset:.5},{transform:'scale(1)'}],140);

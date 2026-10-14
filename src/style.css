@@ -40,3 +40,5 @@ main>section{animation:screen-fade .18s ease both}.puzzle-title{animation:screen
 
 :root[data-motion=reduced] *,:root[data-motion=reduced] *::before,:root[data-motion=reduced] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 .settings select{max-width:100%;margin-top:12px;min-height:44px;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--text);font:inherit}
+
+.parallel-tile{animation:none;z-index:1200}

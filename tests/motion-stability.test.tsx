@@ -30,10 +30,15 @@ it('reduced motion commits the move without scheduling frames or constructing in
  expect(JSON.parse(localStorage.getItem(SAVE_KEY)!).campaigns.normal.active.state.removed).toEqual([14]);
 });
 
-it('rapid selection of a triple drains the accelerated visual queue, shows all three at landing and leaves no ghosts',async()=>{
+it('rapid selection starts three simultaneous flights, shows all three at landing and leaves no ghosts',async()=>{
  await act(async()=>{tile(14).click();tile(19).click();tile(21).click();});
  expect(JSON.parse(localStorage.getItem(SAVE_KEY)!).campaigns.normal.active.state.removed).toEqual([14,19,21]);
  expect(container.querySelectorAll('[data-pending-id]')).toHaveLength(2);
+ const flights=[...container.querySelectorAll<HTMLElement>('[data-flight-id]')];expect(flights).toHaveLength(3);
+ await step();await step();
+ expect(flights.every(el=>el.style.transform.includes('translate3d'))).toBe(true);
+ expect(flights.every(el=>!el.style.transform.startsWith('translate3d(0,0,0)'))).toBe(true);
+
  let tripleLanded=false;
  for(let i=0;i<180&&phase()!=='idle';i++){await step();if(phase()==='land'&&container.querySelectorAll('[data-tray-id]').length===3)tripleLanded=true;}
  expect(tripleLanded).toBe(true);expect(phase()).toBe('idle');expect(container.querySelectorAll('[data-tray-id]')).toHaveLength(0);expect(container.querySelector('[data-pending-id]')).toBeNull();expect(container.querySelector('.flying-tile')).toBeNull();
