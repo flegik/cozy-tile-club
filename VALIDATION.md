@@ -17,3 +17,7 @@ The original MVP passed its initial GitHub Actions run, but those tests did not 
 ## Design 0.3
 
 The design rework adds theme persistence, contrast checks, stable room catalog identity checks and theme/placement UI tests. The full suite has 34 tests. See [DESIGN_REWORK.md](DESIGN_REWORK.md) for art inspection, palette coverage and the limits of browser/mobile verification. Puzzle data and behavioral calibration remain unchanged.
+
+## Modes 0.4
+
+50 tests and the production build passed locally. See [MODES_REWORK.md](MODES_REWORK.md) for help quotas, independent campaign restoration, migration coverage and theme/legacy limitations. The level data and room engine remain unchanged.
