@@ -1,0 +1,6 @@
+import {useEffect,useRef,type ReactNode} from 'react';
+export function Sheet({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
+ const ref=useRef<HTMLDivElement>(null);const close=useRef(onClose);close.current=onClose;
+ useEffect(()=>{const previous=document.activeElement as HTMLElement|null;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';ref.current?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();close.current();}if(e.key==='Tab'){const items=Array.from(ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),[tabindex="0"]')??[]);if(!items.length){e.preventDefault();return;}const first=items[0],last=items.at(-1)!;if(e.shiftKey&&(document.activeElement===first||document.activeElement===ref.current)){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===ref.current)){e.preventDefault();first.focus();}}};document.addEventListener('keydown',key);return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);previous?.focus();};},[]);
+ return <div className="overlay polish-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}><div ref={ref} tabIndex={-1} className="dialog polish-sheet" role="dialog" aria-modal="true" aria-label={title}>{children}</div></div>;
+}

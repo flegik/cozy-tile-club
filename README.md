@@ -64,7 +64,7 @@ The new generator independently mixes balanced motifs over randomized layered ge
 
 Runtime hints solve the current state, not the original certificate. Their first move has a complete continuation proof. Cozy checks the prospective state: solved moves proceed; proven dead ends require a warning confirmation; unknown checks do not claim safety and stay unplayed unless Cozy is turned off. Undo costs one of three attempt points, including after a loss. Hints cost one point only after a full continuation has been validated. Worker search has a 200,000-node budget and a five-second watchdog. Atlas shows **all** motifs so unavailable information need never decide the game.
 
-Fairness does not guarantee that every legal move wins. The explicit full-information atlas, limited Undo and safe move checks address player-created dead ends. The current atlas is a separate view; a future integrated x-ray view would make planning easier.
+Fairness does not guarantee that every legal move wins. The explicit full-information atlas, limited Undo and safe move checks address player-created dead ends. The atlas is a compact modal with a layer picker. Motifs retain their actual coordinates and IDs; no moves occur in planning.
 
 ## Difficulty and new levels
 
@@ -87,6 +87,14 @@ No actual Android/Chrome viewport, accessibility audit, real-worker browser timi
 ## Next phase
 
 1. Private device playtest, refine level difficulty with real choices/time/Undo counts.
-2. Improve room artwork and larger touch placement targets; integrated motif x-ray.
+2. Review room artwork and touch targets on actual phones.
 3. Add more sets and stable appended level packs with save migration.
 4. After review, configure private access/hosting separately; never assume a private GitHub repository makes a Pages site private.
+
+## Private playtest 0.5
+
+Level 1 includes a four-step, skippable introduction, available again from Spielregeln. Completion is saved across both modes. Planning opens as a compact layer dialog; the normal tray and tools stay sticky. All existing level files and difficulty ratings are unchanged.
+
+Settings → Playtest-Daten exportieren downloads local JSON, separated by mode and level: attempts, wins, losses, seconds, undos, hints and restarts. It contains no room, inventory or personal data. Tracking starts with this version; previous sessions are not reconstructed. Visible active puzzle time is accumulated on transitions, backgrounding/pagehide and every 15 seconds, excluding modal planning/tutorial/rules and other screens. Approximate time may lose up to 15 seconds on a forced process kill. A resumed attempt never adds an attempt. Actual successful helper actions alone increment usage. A loss and win each count at most once per attempt; a rescued loss may contribute to both. Restart of the same active level creates an attempt and a restart.
+
+Save schema 3 is extended additively with tutorialCompleted, tracking and attempt outcome observations. Missing fields default safely; both campaigns, current states, remaining help, purchases and room stay intact. These fields travel with full save exports. See PRE_PLAYTEST.md for checks and remaining device tasks.
