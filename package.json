@@ -10,7 +10,8 @@
     "test:watch": "vitest",
     "check": "npm test && npm run build",
     "levels": "node scripts/generate-levels.mjs",
-    "validate:heldout": "vite-node scripts/validate-heldout.ts"
+    "validate:heldout": "vite-node scripts/validate-heldout.ts",
+    "check:pages": "node scripts/check-pages.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

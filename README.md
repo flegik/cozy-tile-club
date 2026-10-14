@@ -6,7 +6,7 @@
 
 **Gameplay 0.2:** 30 new strategic puzzles, normal play without automatic Cozy checks, versioned save migration. Full per-level strategy rates and legal loss/win evidence are documented in [GAMEPLAY_REWORK.md](GAMEPLAY_REWORK.md).
 
-Private, mobile-first offline PWA: triple-tile puzzles + an isometric kawaii room. Original SVG fan illustrations, browser-local saves and an owner-private test Site. No backend, ads or purchases.
+Mobile-first offline PWA: triple-tile puzzles + an isometric kawaii room. Original SVG fan illustrations, browser-local saves and a public GitHub Pages release. No backend, ads or purchases.
 
 ## Run
 
@@ -98,3 +98,15 @@ Level 1 includes a four-step, skippable introduction, available again from Spiel
 Settings → Playtest-Daten exportieren downloads local JSON, separated by mode and level: attempts, wins, losses, seconds, undos, hints and restarts. It contains no room, inventory or personal data. Tracking starts with this version; previous sessions are not reconstructed. Visible active puzzle time is accumulated on transitions, backgrounding/pagehide and every 15 seconds, excluding modal planning/tutorial/rules and other screens. Approximate time may lose up to 15 seconds on a forced process kill. A resumed attempt never adds an attempt. Actual successful helper actions alone increment usage. A loss and win each count at most once per attempt; a rescued loss may contribute to both. Restart of the same active level creates an attempt and a restart.
 
 Save schema 3 is extended additively with tutorialCompleted, tracking and attempt outcome observations. Missing fields default safely; both campaigns, current states, remaining help, purchases and room stay intact. These fields travel with full save exports. See PRE_PLAYTEST.md for checks and remaining device tasks.
+
+## Public GitHub Pages & iPhone
+
+Production URL: https://flegik.github.io/cozy-tile-club/
+
+The Vite base is `/cozy-tile-club/`. The Pages workflow runs tests, builds, validates every entry-point asset and precache path, then deploys the artifact through GitHub Actions on main. GitHub repository Settings → Pages must use GitHub Actions. No backend or paid service is required. The previous private test Site is separate.
+
+On iPhone, open the URL in Safari → Share → Add to Home Screen → enable Open as Web App → Add. Start the installed icon once while online so the whole offline shell, icons and solver Worker can cache. Apple metadata, a 180px touch icon, standalone manifest, viewport-fit and safe-area insets are included. Actual iPhone/Safari installation, status-bar appearance, background persistence and airplane-mode launch still require device testing.
+
+Saves are local to the origin and browser context. Moving from the previous private test address to github.io does not copy storage automatically: export your full save on the old address and import on the new address. Safari and installed iOS web-app storage may differ; use export/import if progress does not appear after installation. Normal updates neither rename the save key nor reset campaigns, help, room or settings. Clearing browser data/uninstalling can remove local saves; keep an export.
+
+Service-worker caches are scoped by this application's name and base pathname. Activation cannot delete WORDLE caches; requests outside this app's subpath are untouched. Every build gets a content-derived cache version, new precaching is atomic, and no update forces a game reload. A Pages release is publicly viewable independently of repository visibility.
