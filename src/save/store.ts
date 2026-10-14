@@ -9,9 +9,9 @@ import {HELP_LIMITS,LEVEL_REWARD} from '../game/config';
 export type Mode='normal'|'cozy';
 export type Attempt={level:number;state:State;history:State[];help:{undo:number;hint:number};hinted:number|null;observed?:string[]};
 export type Campaign={completed:number[];rewarded:number[];active:Attempt|null};
-export type Save={tutorialCompleted:boolean;tracking:Tracking;version:3;pack:2;migrated:boolean;hearts:number;owned:string[];placed:Placed[];wall:string;floor:string;sound:boolean;theme:Theme;themeChosen:boolean;mode:Mode;campaigns:Record<Mode,Campaign>};
+export type Save={tutorialCompleted:boolean;tracking:Tracking;version:3;pack:2;migrated:boolean;hearts:number;owned:string[];placed:Placed[];wall:string;floor:string;sound:boolean;motion:'system'|'full'|'reduced';theme:Theme;themeChosen:boolean;mode:Mode;campaigns:Record<Mode,Campaign>};
 export const freshCampaign=():Campaign=>({completed:[],rewarded:[],active:null});
-export const fresh=():Save=>({tutorialCompleted:false,tracking:{normal:{},cozy:{}},version:3,pack:2,migrated:false,hearts:40,owned:['plant','table'],placed:[{id:'plant',x:0,y:0},{id:'table',x:3,y:3}],wall:'#f3d2df',floor:'#ead9ce',sound:true,theme:'dark',themeChosen:false,mode:'normal',campaigns:{normal:freshCampaign(),cozy:freshCampaign()}});
+export const fresh=():Save=>({tutorialCompleted:false,tracking:{normal:{},cozy:{}},version:3,pack:2,migrated:false,hearts:40,owned:['plant','table'],placed:[{id:'plant',x:0,y:0},{id:'table',x:3,y:3}],wall:'#f3d2df',floor:'#ead9ce',sound:true,motion:'system',theme:'dark',themeChosen:false,mode:'normal',campaigns:{normal:freshCampaign(),cozy:freshCampaign()}});
 export const campaign=(save:Save,mode:Mode=save.mode)=>save.campaigns[mode];
 export const nextLevel=(save:Save)=>Math.min(levels.length,campaign(save).completed.length+1);
 export function switchMode(save:Save,mode:Mode):Save{return save.mode===mode?save:{...save,mode};}
@@ -51,7 +51,7 @@ export function parseSave(raw:string|null):Save{
  // Old versions did not distinguish automatic light from an explicit selection.
  // Preserve their valid stored theme rather than overwrite a possible preference.
  const themeChosen=validTheme&&(legacy||s.themeChosen===true);
- return{...base,tutorialCompleted:s.tutorialCompleted===true,tracking:readTracking(s.tracking),migrated:legacy||!packMatches||s.migrated===true,hearts:Number.isSafeInteger(s.hearts)&&s.hearts>=0?s.hearts:base.hearts,owned,placed,wall:walls.includes(s.wall)?s.wall:base.wall,floor:floors.includes(s.floor)?s.floor:base.floor,sound:typeof s.sound==='boolean'?s.sound:true,theme:themeChosen?s.theme:'dark',themeChosen,mode:!legacy&&s.mode==='cozy'?'cozy':'normal',campaigns};
+ return{...base,tutorialCompleted:s.tutorialCompleted===true,tracking:readTracking(s.tracking),migrated:legacy||!packMatches||s.migrated===true,hearts:Number.isSafeInteger(s.hearts)&&s.hearts>=0?s.hearts:base.hearts,owned,placed,wall:walls.includes(s.wall)?s.wall:base.wall,floor:floors.includes(s.floor)?s.floor:base.floor,sound:typeof s.sound==='boolean'?s.sound:true,motion:s.motion==='full'||s.motion==='reduced'?s.motion:'system',theme:themeChosen?s.theme:'dark',themeChosen,mode:!legacy&&s.mode==='cozy'?'cozy':'normal',campaigns};
  }catch{return fresh();}
 }
 // Keep the original key so existing installations migrate in place.

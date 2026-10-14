@@ -1,3 +1,4 @@
+import {reducedMotion,type MotionPreference} from './preference';
 import type {CSSProperties} from 'react';
 import type {Box} from './tray';
 import type {Frame} from './usePuzzleMotion';
@@ -17,8 +18,8 @@ export function Burst({rect,kind}:{rect:Box;kind:'select'|'land'|'match'}){
 
 // These effects are siblings of the moving/fading tiles. Match particles never
 // inherit a tile's dissolve opacity, and no board tile is animated by them.
-export function MotionEffects({frame,target,match}:{frame:Frame|null;target:Box|null;match:Box|null}){
- if(!frame||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return null;
+export function MotionEffects({frame,target,match,preference='system'}:{frame:Frame|null;target:Box|null;match:Box|null;preference?:MotionPreference}){
+ if(!frame||reducedMotion(preference))return null;
  return <div className="motion-effects" aria-hidden="true">
   {frame.kind==='select'&&frame.phase==='flight'&&<Burst key={`${frame.serial}-select`} rect={frame.source} kind="select"/>}
   {target&&frame.phase!=='flight'&&<Burst key={`${frame.serial}-land`} rect={target} kind="land"/>}

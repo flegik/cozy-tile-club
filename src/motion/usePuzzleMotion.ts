@@ -2,14 +2,15 @@ import {useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {Tile,State} from '../puzzle/types';
 import {accessible} from '../puzzle/engine';
 import {groupTray,trayTiles,stageMove,box,flightPath,type Box,type TrayTile} from './tray';
+import {reducedMotion,type MotionPreference} from './preference';
 import {playSound} from '../audio/sound';
 import {animateElement,type MotionAnimation} from './animate';
 export type Frame={serial:number;kind:'select'|'undo';phase:'flight'|'land'|'match'|'settle';id:number;motif:number;source:Box;tokens:TrayTile[];final:TrayTile[];matched:number[];revealed:number[];sound:boolean;won:boolean};
 type QueuedMove={before:State;after:State;id:number;source:Box;sound:boolean};
-export function usePuzzleMotion(tiles:Tile[],state:State){
+export function usePuzzleMotion(tiles:Tile[],state:State,preference:MotionPreference='system'){
  const queue=useRef<QueuedMove[]>([]),pendingRef=useRef<HTMLDivElement|null>(null);
  const [queued,setQueued]=useState<QueuedMove[]>([]),[frame,setFrame]=useState<Frame|null>(null),[revealed,setRevealed]=useState<number[]>([]),[targetBox,setTargetBox]=useState<Box|null>(null),[matchBox,setMatchBox]=useState<Box|null>(null);const locked=useRef(false),epoch=useRef(0),animations=useRef(new Set<MotionAnimation>()),flightRef=useRef<HTMLDivElement|null>(null),trayRef=useRef<HTMLDivElement|null>(null),boardRef=useRef<HTMLDivElement|null>(null),previousRects=useRef(new Map<number,Box>());
- const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
+ const reduced=()=>reducedMotion(preference);
  const cancel=useCallback(()=>{epoch.current++;locked.current=false;queue.current=[];setQueued([]);for(const a of animations.current)a.cancel();animations.current.clear();setFrame(null);setRevealed([]);setTargetBox(null);setMatchBox(null);},[]);
  function run(element:Element|null,keys:Keyframe[],duration:number,scope?:Set<MotionAnimation>){if(!element||reduced())return Promise.resolve();const a=animateElement(element,keys,duration,duration===320?1.5:3);if(!a)return Promise.resolve();animations.current.add(a);scope?.add(a);if(queue.current.length)a.accelerate?.(3);return a.finished.catch(()=>{}).then(()=>{if(!scope){animations.current.delete(a);a.cancel();}});}
  function remember(){if(reduced()){previousRects.current.clear();return;}previousRects.current=new Map(Array.from(trayRef.current?.querySelectorAll<HTMLElement>('[data-tray-id]')??[]).map(el=>[Number(el.dataset.trayId),box(el)]));}
